@@ -1,18 +1,34 @@
+#keyboards.py
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 
 def main_menu_keyboard():
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🛌 Сон")],
+            [
+                KeyboardButton(text="🛌 Сон"),
+            ],
             [KeyboardButton(text="🏋️ Тренировка")],
             [KeyboardButton(text="ℹ️ Совет")],
-            [KeyboardButton(text="📖 Мои тренировки")]
+            [KeyboardButton(text="📖 Мои тренировки")],
         ],
         resize_keyboard=True
     )
     return keyboard
 
+def sleep_menu_keyboard():
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [
+                KeyboardButton(text="🛌 Напоминание"),
+                KeyboardButton(text="⏰ Ввести время сна"),
+                KeyboardButton(text="📊 Статистика"),
+            ],
+            [KeyboardButton(text="↩️ Назад")],
+        ],
+        resize_keyboard=True
+    )
+    return keyboard
 
 def workout_levels_keyboard():
     keyboard = InlineKeyboardMarkup(
