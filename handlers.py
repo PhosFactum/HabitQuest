@@ -1,11 +1,6 @@
 # handlers.py
-import io
-import pandas as pd
-import matplotlib.pyplot as plt
-
-from aiogram import F, types
+from aiogram import types
 from aiogram.types import Message, CallbackQuery
-from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
@@ -21,8 +16,8 @@ from database import (
     save_workout,
     get_user_workouts,
     save_sleep_data,
-    get_sleep_stats,
 )
+from sleep.charts import fetch_sleep_data, create_sleep_chart
 
 # Define FSM states for sleep
 class SleepStates(StatesGroup):
@@ -36,7 +31,9 @@ async def send_welcome(message: Message):
         reply_markup=main_menu_keyboard(),
     )
 
-async def handle_sleep_command(message: Message, state: FSMContext):
+
+# Sleep handlers
+async def handle_sleep_command(message: Message):
     # Open sleep submenu
     await show_sleep_menu(message)
 
@@ -73,41 +70,57 @@ async def process_sleep_time(message: Message, state: FSMContext):
     await state.clear()
 
 async def process_sleep_input(message: Message, state: FSMContext):
-    # Process logging of sleep interval
     try:
-        sleep_str, wake_str = message.text.split('-')
+        sleep_time, wake_time = message.text.split('-')
+        sleep_time = sleep_time.strip()
+        wake_time = wake_time.strip()
+
+        # Сохраняем в базу
+        save_sleep_data(
+            user_id=message.from_user.id,
+            sleep_time=sleep_time,
+            wake_time=wake_time
+        )
+
+        await message.answer(
+            "✅ Время сна сохранено!\n"
+            f"🛌 Засыпание: {sleep_time}\n"
+            f"⏰ Пробуждение: {wake_time}",
+            reply_markup=main_menu_keyboard()
+        )
+        await state.clear()
+
     except ValueError:
-        await message.answer("Неверный формат. Пример: 22:30-06:45")
-        return
-    save_sleep_data(
-        user_id=message.from_user.id,
-        sleep_time=sleep_str.strip(),
-        wake_time=wake_str.strip(),
-    )
-    await message.answer("Время сна сохранено! 💤", reply_markup=main_menu_keyboard())
-    await state.clear()
+        await message.answer("Неверный формат. Введите как: 23:00-07:30")
+
 
 async def show_sleep_stats(message: Message):
-    # Build and send sleep duration chart for last 7 days
-    stats = get_sleep_stats(message.from_user.id)
-    if not stats:
-        await message.answer("Нет данных для статистики.", reply_markup=main_menu_keyboard())
-        return
-    df = pd.DataFrame(stats)
-    fig, ax = plt.subplots()
-    ax.axhspan(7, 9, alpha=0.2)
-    ax.plot(df['date'], df['duration'], marker='o')
-    ax.set_title('Сон за последние 7 дней')
-    ax.set_ylabel('Часы сна')
-    ax.set_xlabel('Дата')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png')
-    buf.seek(0)
-    await message.answer_photo(types.InputFile(buf, filename='sleep_stats.png'), reply_markup=main_menu_keyboard())
-    buf.close()
+    try:
+        df = fetch_sleep_data(message.from_user.id)
+        if df.empty:
+            await message.answer(
+                "У вас пока нет записей о сне. "
+                "Введите время сна через меню '⏰ Ввести время сна'",
+                reply_markup=main_menu_keyboard()
+            )
+            return
 
+        buf = create_sleep_chart(df)
+        await message.answer_photo(
+            types.BufferedInputFile(buf.read(), filename="sleep_stats.png"),
+            caption="Ваша статистика сна за последние 7 дней",
+            reply_markup=main_menu_keyboard()
+        )
+        buf.close()
+
+    except Exception as e:
+        await message.answer(
+            f"Ошибка при построении графика: {str(e)}",
+            reply_markup=main_menu_keyboard()
+        )
+
+
+# Trainings handlers
 async def handle_train_command(message: Message):
     # Redirect to training menu
     await handle_train_text(message)

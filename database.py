@@ -1,5 +1,7 @@
+# database.py
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
+from config import DB_PATH
 
 
 def init_db():
@@ -61,16 +63,33 @@ def get_user_workouts(user_id: int, limit: int = 5):
     return results
 
 def save_sleep_data(user_id: int, sleep_time: str, wake_time: str):
-    conn = sqlite3.connect('data/habitquest.db')
+    now = datetime.now()
+    sleep_dt = datetime.strptime(sleep_time, '%H:%M')
+    wake_dt = datetime.strptime(wake_time, '%H:%M')
+
+    # Привязываем дату к sleep_time — сегодня или вчера
+    sleep_datetime = now.replace(hour=sleep_dt.hour, minute=sleep_dt.minute, second=0, microsecond=0)
+    if sleep_datetime > now:
+        sleep_datetime -= timedelta(days=1)
+
+    # wake_time считается на следующий день, если раньше sleep_time
+    wake_datetime = now.replace(hour=wake_dt.hour, minute=wake_dt.minute, second=0, microsecond=0)
+    if wake_datetime <= sleep_datetime:
+        wake_datetime += timedelta(days=1)
+
+    # Сохраняем
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute('''
-        INSERT INTO sleep_data (user_id, sleep_time, wake_time)
-        VALUES (?, ?, ?)
-    ''', (user_id, sleep_time, wake_time))
+    c.execute(
+        '''INSERT INTO sleep_data (user_id, sleep_time, wake_time)
+           VALUES (?, ?, ?)''',
+        (user_id, sleep_datetime.strftime('%Y-%m-%d %H:%M'), wake_datetime.strftime('%Y-%m-%d %H:%M'))
+    )
     conn.commit()
     conn.close()
 
-def get_sleep_stats(user_id: int, days: int = 7):
+
+def get_sleep_data(user_id: int, days: int = 7):
     from datetime import datetime, timedelta
     conn = sqlite3.connect('data/habitquest.db')
     c = conn.cursor()
@@ -83,13 +102,4 @@ def get_sleep_stats(user_id: int, days: int = 7):
     ''', (user_id, since))
     rows = c.fetchall()
     conn.close()
-    stats = []
-    for date_str, sleep_str, wake_str in rows:
-        sleep_dt = datetime.fromisoformat(f"{date_str}T{sleep_str}")
-        wake_dt = datetime.fromisoformat(f"{date_str}T{wake_str}")
-        if wake_dt <= sleep_dt:
-            # если перескочили через полночь
-            wake_dt += timedelta(days=1)
-        duration = (wake_dt - sleep_dt).total_seconds() / 3600
-        stats.append({'date': date_str, 'duration': duration})
-    return stats
+    return rows
