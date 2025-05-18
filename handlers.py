@@ -1,5 +1,4 @@
-import logging
-
+# handlers.py
 from aiogram import F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
@@ -36,40 +35,38 @@ def register_handlers(dp):
     dp.callback_query.register(handle_level_callback, F.data.startswith("level_"))
 
 
-# Handlers implementations
+### Handlers implementations
 async def send_welcome(message: Message):
     await message.answer(
         "Привет! Я — HabitQuest, твой помощник по ЗОЖ. Выбери действие:",
         reply_markup=main_menu_keyboard()
     )
 
+
+# Sleep logic
 async def handle_sleep_command(message: Message, state: FSMContext):
-    await handle_sleep_text(message)
+    await handle_sleep_text(message, state)
 
-async def handle_train_command(message: Message):
-    await handle_train_text(message)
-
-async def handle_my_trainings(message: Message):
-    await handle_my_trainings_button(message)
-
-async def handle_sleep_text(message: Message):
-    await message.answer("Напоминание на сон установлено! Желаю сладких снов 😴")
-    # Ask for sleep time or set default
-    await set_sleep_reminder(message)
+async def handle_sleep_text(message: Message, state: FSMContext):
+    await message.answer("Во сколько поставить напоминание? Введи время в формате HH:MM")
+    await state.set_state(SleepStates.waiting_for_sleep_time)
 
 async def process_sleep_time(message: Message, state: FSMContext):
     await set_sleep_reminder(message, message.text)
     await state.clear()
 
-async def handle_train_text(message: Message):
-    await message.answer(
-        "Выбери уровень тренировки:",
-        reply_markup=workout_levels_keyboard()
-    )
 
-async def handle_advice(message: Message):
-    advice = get_sleep_advice()
-    await message.answer(f"Совет по сну: {advice}")
+# Trainings logic
+async def handle_train_command(message: Message):
+    await handle_train_text(message)
+
+async def handle_train_text(message: Message):
+    await message.answer("Выбери уровень тренировки:",
+                         reply_markup=workout_levels_keyboard()
+                         )
+
+async def handle_my_trainings(message: Message):
+    await handle_my_trainings_button(message)
 
 async def handle_my_trainings_button(message: Message):
     workouts = get_user_workouts(message.from_user.id)
@@ -105,3 +102,10 @@ async def handle_level_callback(callback: CallbackQuery):
 
     await callback.message.answer(f"Твоя тренировка ({selected_level.title()}):\n{workout}")
     await callback.answer()
+
+
+# Advices logic
+async def handle_advice(message: Message):
+    advice = get_sleep_advice()
+    await message.answer(f"Совет по сну: {advice}")
+

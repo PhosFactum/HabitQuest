@@ -1,12 +1,13 @@
+# bot.py
 import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config import TOKEN
 from database import init_db
+from scheduler import start_scheduler
 from handlers import register_handlers
 
 logging.basicConfig(level=logging.INFO)
@@ -14,8 +15,7 @@ logging.basicConfig(level=logging.INFO)
 async def main():
     # Initialize database and scheduler
     init_db()
-    scheduler = AsyncIOScheduler()
-    scheduler.start()
+    start_scheduler()  # Теперь переменная определена
 
     # Initialize bot and dispatcher
     storage = MemoryStorage()
