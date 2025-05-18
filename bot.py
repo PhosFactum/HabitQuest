@@ -1,16 +1,22 @@
 # bot.py
+import os
 import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
+from dotenv import load_dotenv
 
-from config import TOKEN
 from database import init_db
 from scheduler import start_scheduler
 from handlers import register_handlers
 
+
 logging.basicConfig(level=logging.INFO)
+
+load_dotenv()
+TOKEN = os.getenv("TOKEN")
+
 
 async def main():
     # Initialize database and scheduler
