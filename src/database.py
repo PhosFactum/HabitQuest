@@ -2,7 +2,7 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
-from config import DB_URL
+from src.config import DB_URL
 
 def get_conn():
     print("Connecting with URL:", DB_URL)  # Добавьте эту строку
