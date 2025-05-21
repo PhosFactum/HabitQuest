@@ -9,7 +9,6 @@ def main_menu_keyboard():
                 KeyboardButton(text="🛌 Сон"),
             ],
             [KeyboardButton(text="🏋️ Тренировка")],
-            [KeyboardButton(text="ℹ️ Совет")],
             [KeyboardButton(text="📖 Мои тренировки")],
         ],
         resize_keyboard=True
@@ -21,6 +20,9 @@ def sleep_menu_keyboard():
         keyboard=[
             [
                 KeyboardButton(text="🛌 Напоминание"),
+                KeyboardButton(text="ℹ️ Совет по сну"),
+            ],
+            [
                 KeyboardButton(text="⏰ Ввести время сна"),
                 KeyboardButton(text="📊 Статистика"),
             ],

@@ -29,7 +29,7 @@ def register_handlers(dp: Dispatcher):
     # Register main menu interactions
     dp.message.register(show_sleep_menu, F.text == "🛌 Сон")
     dp.message.register(handle_train_text, F.text == "🏋️ Тренировка")
-    dp.message.register(handle_advice, F.text == "ℹ️ Совет")
+    dp.message.register(handle_advice, F.text == "ℹ️ Совет по сну")
     dp.message.register(handle_my_trainings_button, F.text == "📖 Мои тренировки")
 
     # Register sleep submenu interactions

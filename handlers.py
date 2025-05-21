@@ -51,6 +51,8 @@ async def handle_sleep_menu(message: Message, state: FSMContext):
         # Ask user for reminder time
         await message.answer("Во сколько поставить напоминание? Введите время в формате HH:MM")
         await state.set_state(SleepStates.waiting_for_sleep_time)
+    elif text == "ℹ️ Совет по сну":
+        await handle_advice(message)
     elif text == "⏰ Ввести время сна":
         # Prompt user to log sleep interval
         await message.answer("Введите время сна и подъёма в формате HH:MM-HH:MM")
@@ -62,6 +64,11 @@ async def handle_sleep_menu(message: Message, state: FSMContext):
         # Return to main menu
         await message.answer("Главное меню:", reply_markup=main_menu_keyboard())
         await state.clear()
+
+async def handle_advice(message: Message):
+    # Send sleep advice
+    advice = get_sleep_advice()
+    await message.answer(f"Совет по сну: {advice}")
 
 async def process_sleep_time(message: Message, state: FSMContext):
     # Process reminder time input and schedule
@@ -132,11 +139,6 @@ async def handle_train_text(message: Message):
         reply_markup=workout_levels_keyboard(),
     )
 
-async def handle_advice(message: Message):
-    # Send sleep advice
-    advice = get_sleep_advice()
-    await message.answer(f"Совет по сну: {advice}")
-
 async def handle_my_trainings_command(message: Message):
     # Redirect to my trainings
     await handle_my_trainings_button(message)
@@ -147,7 +149,7 @@ async def handle_my_trainings_button(message: Message):
     if not workouts:
         await message.answer("У тебя пока нет сохранённых тренировок 💤")
         return
-    response = "🏋️‍♂️ Твои последние тренировки:\n\n"
+    response = "🏋️‍♂️ Твои 3 последние тренировки:\n\n"
     for date, level, exercises in workouts:
         response += (
             f"📅 {date}\n"

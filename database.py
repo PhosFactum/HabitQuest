@@ -48,7 +48,7 @@ def save_workout(user_id: int, level: str, exercises: str):
     conn.close()
 
 
-def get_user_workouts(user_id: int, limit: int = 5):
+def get_user_workouts(user_id: int, limit: int = 3):
     conn = sqlite3.connect('data/habitquest.db')
     c = conn.cursor()
 
