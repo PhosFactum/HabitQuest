@@ -1,4 +1,4 @@
-# handlers.py
+# src/handlers.py
 from aiogram import types
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext

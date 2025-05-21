@@ -70,9 +70,14 @@ def get_user_workouts(user_id: int, limit: int = 3):
             """,
             (user_id, limit)
         )
-        results = cur.fetchall()
+        rows = cur.fetchall()  # вот здесь rows — list of dicts
     conn.close()
-    return results
+    # Приводим в привычный формат [(date, level, exercises), …]
+    return [
+        (row['date'], row['level'], row['exercises'])
+        for row in rows
+    ]
+
 
 def save_sleep_data(user_id: int, sleep_time: str, wake_time: str):
     now = datetime.now()

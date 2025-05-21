@@ -1,3 +1,4 @@
+# src/workout/levels.py
 def get_available_levels():
     return ["лёгкая", "средняя", "тяжёлая"]
 
