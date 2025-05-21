@@ -2,14 +2,13 @@
 from aiogram import F, Dispatcher
 from aiogram.filters import Command, StateFilter
 
-from handlers import (
+from src.handlers import (
     send_welcome,
     handle_sleep_command,
     show_sleep_menu,
     handle_sleep_menu,
     process_sleep_time,
     process_sleep_input,
-    show_sleep_stats,
     handle_train_command,
     handle_train_text,
     handle_advice,

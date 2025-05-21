@@ -2,7 +2,7 @@
 from aiogram import Bot
 from aiogram.types import Message
 from datetime import datetime, timedelta
-from scheduler import scheduler
+from src.scheduler import scheduler
 from config import TOKEN
 
 

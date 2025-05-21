@@ -4,20 +4,20 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from sleep.reminders import set_sleep_reminder
-from sleep.advice import get_sleep_advice
-from workout.generator import generate_workout
+from src.sleep.reminders import set_sleep_reminder
+from src.sleep.advice import get_sleep_advice
+from src.workout.generator import generate_workout
 from keyboards import (
     main_menu_keyboard,
     sleep_menu_keyboard,
     workout_levels_keyboard,
 )
-from database import (
+from src.database import (
     save_workout,
     get_user_workouts,
     save_sleep_data,
 )
-from sleep.charts import fetch_sleep_data, create_sleep_chart
+from src.sleep.charts import fetch_sleep_data, create_sleep_chart
 
 # Define FSM states for sleep
 class SleepStates(StatesGroup):
@@ -122,7 +122,7 @@ async def show_sleep_stats(message: Message):
 
     except Exception as e:
         await message.answer(
-            f"Ошибка при построении графика: {str(e)}",
+            f"Ошибка при построении графика: {e}",
             reply_markup=main_menu_keyboard()
         )
 

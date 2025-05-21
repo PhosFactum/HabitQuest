@@ -7,9 +7,9 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
 
-from database import init_db
-from scheduler import start_scheduler
-from reghandlers import register_handlers
+from src.database import init_db
+from src.scheduler import start_scheduler
+from src.reghandlers import register_handlers
 
 logging.basicConfig(level=logging.INFO)
 load_dotenv()

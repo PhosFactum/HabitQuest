@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:15
+    container_name: habitquest_postgres
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  bot:
+    build: .
+    container_name: habitquest_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
