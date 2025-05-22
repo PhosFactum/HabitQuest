@@ -1,71 +1,70 @@
 import io
 from datetime import timedelta
-
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
+import matplotlib.dates as mdates
 from src.database import get_sleep_data
 
 def fetch_sleep_data(user_id: int, days: int = 7) -> pd.DataFrame:
-    """Получает данные сна за последние `days` дней и возвращает DataFrame."""
     data = get_sleep_data(user_id, days)
-
     if not data:
         return pd.DataFrame()
 
-    sleep_records = []
+    records = []
     for row in data:
-        # row — dict с ключами 'date', 'sleep_time', 'wake_time'
-        day = row['date']                # datetime.date
-        sleep_dt = row['sleep_time']     # datetime.datetime
-        wake_dt = row['wake_time']       # datetime.datetime
+        day       = row['date']        # datetime.date
+        sleep_dt  = row['sleep_time']  # datetime.datetime
+        wake_dt   = row['wake_time']   # datetime.datetime
 
-        # Если пользователь проснулся на следующий день
         if wake_dt <= sleep_dt:
             wake_dt += timedelta(days=1)
 
-        duration = (wake_dt - sleep_dt).total_seconds() / 3600
-        sleep_records.append({
-            'date': day.isoformat(),
-            'duration': round(duration, 2),
-            'sleep_time': sleep_dt.strftime('%H:%M'),
-            'wake_time': wake_dt.strftime('%H:%M')
+        dur = (wake_dt - sleep_dt).total_seconds() / 3600
+        records.append({
+            'date': pd.to_datetime(day),           # в datetime64
+            'duration': round(dur, 2)
         })
 
-    df = pd.DataFrame(sleep_records)
-    # Сортируем по дате (по возрастанию)
-    df['date'] = pd.to_datetime(df['date'])
+    df = pd.DataFrame(records)
     df = df.sort_values('date')
-    df['date'] = df['date'].dt.date
     return df
 
 def create_sleep_chart(df: pd.DataFrame) -> io.BytesIO:
-    """Создает график сна и возвращает его как BytesIO"""
     if df.empty:
         raise ValueError("Нет данных для построения графика")
 
+    dates = df['date']  # серия datetime64[ns]
+    durations = df['duration']
+
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax.yaxis.set_major_locator(plt.MultipleLocator(1))
 
-    # Оптимальная зона сна (7-9 часов)
+    # зона 6.5–9.5 ч
     ax.axhspan(6.5, 9.5, color='green', alpha=0.1)
-    ax.axhline(y=8, color='green', linestyle='--', alpha=0.3)
+    ax.axhline(8, linestyle='--', alpha=0.3, color='green')
 
-    # График сна
-    ax.plot(df['date'], df['duration'],
-            marker='o', linestyle='-', markersize=8, linewidth=2)
+    # график
+    ax.plot(dates, durations, marker='o', linestyle='-', linewidth=2, markersize=8)
 
-    # Подписи точек
-    for _, row in df.iterrows():
-        ax.text(row['date'], row['duration'] + 0.2,
-                f"{row['duration']} ч", ha='center', fontsize=8)
+    # подписи над точками
+    for x, y in zip(dates, durations):
+        ax.text(x, y + 0.2, f"{y} ч", ha='center', fontsize=8)
 
-    # Настройки графика
-    ax.set_title('Ваш сон за последние 7 дней', pad=20)
-    ax.set_ylabel('Часы сна')
+    # явно задаём метки и пределы по X
+    ax.set_xlim(dates.min(), dates.max())
+    ax.set_xticks(dates)
+
+    # формат отображения дат
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%d.%m'))
+
+    # подпись осей и заголовок
     ax.set_xlabel('Дата')
+    ax.set_ylabel('Часы сна')
+    ax.set_title('Ваш сон за последние 7 дней', pad=20)
+
     ax.set_ylim(0, 12)
-    ax.grid(True, alpha=0.3)
+    ax.grid(alpha=0.3)
+
     plt.xticks(rotation=45)
     plt.tight_layout()
 
